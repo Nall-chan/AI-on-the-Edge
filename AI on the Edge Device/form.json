@@ -1,0 +1,158 @@
+{
+    "elements": [
+        {
+            "type": "RowLayout",
+            "items": [
+                {
+                    "caption": "Host",
+                    "name": "Host",
+                    "type": "ValidationTextBox",
+                    "width": "250px",
+                    "enabled": false
+                },
+                {
+                    "type": "Button",
+                    "name": "ResetAddress",
+                    "caption": "Overwrite Address",
+                    "onClick": "IPS_RequestAction($id, 'ResetAddress', true);"
+                }
+            ]
+        },
+        {
+            "name": "ApiKey",
+            "type": "ValidationTextBox",
+            "caption": "API-Key",
+            "width": "300px"
+        },
+        {
+            "type": "RowLayout",
+            "items": [
+                {
+                    "caption": "Value Type",
+                    "name": "ValueProfile",
+                    "type": "Select",
+                    "width": "250px",
+                    "options": [
+                        {
+                            "caption": "none",
+                            "value": ""
+                        },
+                        {
+                            "caption": "Water",
+                            "value": "Water.m3"
+                        },
+                        {
+                            "caption": "Gas",
+                            "value": "Gas.m3"
+                        }
+                    ]
+                },
+                {
+                    "type": "Button",
+                    "caption": "Enable logging",
+                    "onClick": "IPS_RequestAction($id, 'EnableLogging', 'Value');"
+                }
+            ]
+        },
+        {
+            "type": "RowLayout",
+            "items": [
+                {
+                    "name": "EnablePreValue",
+                    "type": "CheckBox",
+                    "width": "250px",
+                    "caption": "Enable previous value"
+                },
+                {
+                    "type": "Button",
+                    "caption": "Enable logging",
+                    "onClick": "IPS_RequestAction($id, 'EnableLogging', 'PreValue');"
+                }
+            ]
+        },
+        {
+            "type": "RowLayout",
+            "items": [
+                {
+                    "name": "EnableRawValue",
+                    "type": "CheckBox",
+                    "width": "250px",
+                    "caption": "Enable raw value"
+                },
+                {
+                    "type": "Button",
+                    "caption": "Enable logging",
+                    "onClick": "IPS_RequestAction($id, 'EnableLogging', 'RawValue');"
+                }
+            ]
+        },
+        {
+            "name": "EnableSnapshotImage",
+            "type": "CheckBox",
+            "width": "250px",
+            "caption": "Enable snapshot image"
+        },
+        {
+            "type": "RowLayout",
+            "items": [
+                {
+                    "type": "ColumnLayout",
+                    "items": [
+                        {
+                            "name": "EnableTimeoutVariable",
+                            "type": "CheckBox",
+                            "width": "250px",
+                            "caption": "Enable offline variable"
+                        },
+                        {
+                            "name": "EnableTimeoutInstanceStatus",
+                            "type": "CheckBox",
+                            "width": "250px",
+                            "caption": "Enable instance error state"
+                        }
+                    ]
+                },
+                {
+                    "name": "Timeout",
+                    "type": "NumberSpinner",
+                    "width": "200px",
+                    "caption": "Time to mark device as offline",
+                    "minimum": 0,
+                    "suffix": "seconds"
+                }
+            ]
+        },
+        {
+            "name": "DigitizeIntervall",
+            "type": "NumberSpinner",
+            "width": "200px",
+            "caption": "Interval for flow start",
+            "minimum": 0,
+            "suffix": "minutes"
+        }
+    ],
+    "actions": [
+        {
+            "type": "Button",
+            "caption": "Start Flow",
+            "onClick": "AOTED_StartFlow($id);"
+        },
+        {
+            "type": "Button",
+            "caption": "Read Values",
+            "onClick": "AOTED_ReadValues($id);"
+        },
+        {
+            "type": "Button",
+            "caption": "Load Image",
+            "onClick": "AOTED_LoadImage($id);"
+        }
+    ],
+    "status": [
+        {
+            "code": 202,
+            "icon": "error",
+            "caption": "Device offline"
+        }
+    ]
+}

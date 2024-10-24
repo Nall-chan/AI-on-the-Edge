@@ -1,0 +1,29 @@
+{
+    "translations": {
+        "de": {
+            "Overwrite Address": "Addresse überschreiben",
+            "Save": "Speichern",
+            "Value Type": "Typ der Werte",
+            "Water": "Wasser",
+            "Enable logging": "Logging aktivieren",
+            "Enable previous value": "Aktiviere Vorheriger Wert",
+            "Enable raw value": "Aktiviere Rohwert",
+            "Enable snapshot image": "Erstelle Snapshot Bild",
+            "Enable offline variable": "Aktiviere Offline Variable",
+            "Enable instance error state": "Aktiviere Instanz Fehlerzustand",
+            "Time to mark device as offline": "Zeit bis Gerät als offline erkannt wird",
+            "Interval for flow start": "Intervall zum starten des Flow",
+            "seconds": "Sekunden",
+            "minutes": "Minuten",
+            "Read Values": "Lese Werte",
+            "Load Image": "Lade Bild",
+            "Device offline": "Gerät Offline",
+            "Last flow": "Letzter Lauf",
+            "Value": "Wert",
+            "Error": "Fehler",
+            "Previous value": "Vorheriger Wert",
+            "Raw value": "Rohwert",
+            "Image": "Bild"
+        }
+    }
+}

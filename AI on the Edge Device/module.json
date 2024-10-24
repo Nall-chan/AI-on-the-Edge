@@ -1,0 +1,12 @@
+{
+    "id": "{C6259AA4-C24A-ED2E-AE6F-F6DB1F6B3584}",
+    "name": "AI on the Edge Device",
+    "type": 3,
+    "vendor": "jomjol",
+    "aliases": [],
+    "parentRequirements": [],
+    "childRequirements": [],
+    "implemented": [],
+    "prefix": "AOTED",
+    "url": ""
+}
