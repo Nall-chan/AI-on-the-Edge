@@ -218,6 +218,7 @@ namespace {
                     if ($Value != 'RawValue') {
                         AC_SetAggregationType($AId, $this->FindIDForIdent((string) $Value), 1);
                     }
+                    $this->UpdateFormField(AIontheEdgeDevice\Action::EnableLogging . (string) $Value, 'enabled', false);
                     break;
             }
         }
