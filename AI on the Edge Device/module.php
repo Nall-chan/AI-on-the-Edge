@@ -61,7 +61,7 @@ namespace {
             $this->RegisterPropertyBoolean(AIontheEdgeDevice\Property::EnableSnapshotImage, true);
             $this->RegisterPropertyBoolean(AIontheEdgeDevice\Property::EnableTimeoutVariable, true);
             $this->RegisterPropertyBoolean(AIontheEdgeDevice\Property::EnableTimeoutInstanceStatus, true);
-            $this->RegisterPropertyInteger(AIontheEdgeDevice\Property::Timeout, 0);
+            $this->RegisterPropertyInteger(AIontheEdgeDevice\Property::Timeout, 300);
             $this->RegisterPropertyInteger(AIontheEdgeDevice\Property::DigitizeIntervall, 0);
             $this->RegisterTimer(\AIontheEdgeDevice\Timer::Timeout, 0, 'IPS_RequestAction(' . $this->InstanceID . ',"Timeout",true);');
             $this->RegisterTimer(\AIontheEdgeDevice\Timer::RunFlow, 0, 'IPS_RequestAction(' . $this->InstanceID . ',"RunFlow",true);');
@@ -102,7 +102,6 @@ namespace {
             //Never delete this line!
             parent::ApplyChanges();
             $this->Host = '';
-            $this->ApiKey = '';
 
             if (IPS_GetKernelRunlevel() != KR_READY) {
                 return;
@@ -110,10 +109,10 @@ namespace {
             $this->RegisterProfileFloat(AIontheEdgeDevice\VariableProfile::Water, 'Drops', '', ' m³', 0, 0, 0, 3);
             $this->RegisterProfileFloat(AIontheEdgeDevice\VariableProfile::Gas, 'Flame', '', ' m³', 0, 0, 0, 3);
             $this->RegisterHook(AIontheEdgeDevice\Hook::Uri . $this->InstanceID);
-			$Host = $this->ReadAttributeString(AIontheEdgeDevice\Attribute::Host);
-			if ($Host){
-            	$this->Host = gethostbyname($Host);
-			}
+            $Host = $this->ReadAttributeString(AIontheEdgeDevice\Attribute::Host);
+            if ($Host) {
+                $this->Host = gethostbyname($Host);
+            }
             $this->ApiKey = $this->ReadPropertyString(AIontheEdgeDevice\Property::ApiKey);
             $this->RegisterVariableInteger(
                 AIontheEdgeDevice\Variable::Timestamp,
@@ -202,9 +201,11 @@ namespace {
                     $this->UpdateFormField(AIontheEdgeDevice\Action::ResetAddress, 'onClick', 'IPS_RequestAction($id, \'ResetAddress\', true);');
                     $this->WriteAttributeString(AIontheEdgeDevice\Attribute::Host, $Value);
                     $this->Host = $Value;
-					if ($Value == ''){
-						$this->SetStatus(AIontheEdgeDevice\ModuleState::Inactive);
-					}
+                    if ($Value == '') {
+                        $this->SetStatus(AIontheEdgeDevice\ModuleState::Inactive);
+                    } else {
+                        $this->UpdateFormField(AIontheEdgeDevice\Hook::Form, 'caption', $this->GetConsumerAddress());
+                    }
                     break;
                 case AIontheEdgeDevice\Action::ResetAddress:
                     $this->UpdateFormField(AIontheEdgeDevice\Attribute::Host, 'enabled', true);
@@ -243,6 +244,7 @@ namespace {
             if (AC_GetLoggingStatus($AId, $this->FindIDForIdent(AIontheEdgeDevice\Variable::RawValue))) {
                 $Form['elements'][4]['items'][1]['enabled'] = false;
             }
+            $Form['actions'][0]['items'][1]['caption'] = $this->GetConsumerAddress();
             $this->SendDebug('FORM', json_encode($Form), 0);
             $this->SendDebug('FORM', json_last_error_msg(), 0);
             return json_encode($Form);
@@ -321,8 +323,15 @@ namespace {
          */
         protected function ProcessHookData(): void
         {
-            $ReceivedApiKey = isset($_SERVER['HTTP_APIKEY']) ? $_SERVER['HTTP_APIKEY'] : '';
             $DeviceAddr = $_SERVER['REMOTE_ADDR'];
+            if ($_SERVER['HTTP_USER_AGENT'] != 'ESP32 Meter reader') {
+                http_response_code(403); // 403 Forbidden
+                echo json_encode(['status' => 'error', 'message' => 'Invalid device, not an ESP32 Meter reader']);
+                $this->SendDebug($DeviceAddr, 'Invalid device, not an ESP32 Meter reader', 0);
+                return;
+            }
+
+            $ReceivedApiKey = isset($_SERVER['HTTP_APIKEY']) ? $_SERVER['HTTP_APIKEY'] : '';
             if ($ReceivedApiKey !== $this->ApiKey) {
                 http_response_code(403); // 403 Forbidden
                 echo json_encode(['status' => 'error', 'message' => 'Invalid API key']);
@@ -331,9 +340,10 @@ namespace {
             }
             if ($this->ReadAttributeString(AIontheEdgeDevice\Attribute::Host) == '') {
                 $this->Host = $DeviceAddr;
-				$Host = gethostbyaddr($DeviceAddr);
+                $Host = gethostbyaddr($DeviceAddr);
                 $this->WriteAttributeString(AIontheEdgeDevice\Attribute::Host, $Host);
-				$this->UpdateFormField(AIontheEdgeDevice\Attribute::Host, 'value', $Host);
+                $this->UpdateFormField(AIontheEdgeDevice\Attribute::Host, 'value', $Host);
+                $this->UpdateFormField(AIontheEdgeDevice\Hook::Form, 'caption', $this->GetConsumerAddress());
             }
             if ($this->Host != $DeviceAddr) {
                 http_response_code(403); // 403 Forbidden
@@ -478,6 +488,75 @@ namespace {
             }
             $this->SetTimerInterval(AIontheEdgeDevice\Timer::Timeout, 0);
         }
+
+        /**
+         * GetConsumerAddress
+         *
+         * @return string
+         */
+        private function GetConsumerAddress(): string
+        {
+            $Url = $this->Translate('Invalid');
+            if (IPS_GetOption('NATSupport')) {
+                $ip = IPS_GetOption('NATPublicIP');
+                if ($ip == '') {
+                    $this->SendDebug('NAT enabled ConsumerAddress', 'Invalid', 0);
+                    return $this->Translate('NATPublicIP is missing in special switches!');
+                }
+                $Url = 'http://' . $ip . ':3777' . AIontheEdgeDevice\Hook::Uri . $this->InstanceID;
+            } else {
+                if ($this->Host) {
+                    $sock = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+                    socket_bind($sock, '0.0.0.0', 0);
+                    @socket_connect($sock, $this->Host, 80);
+                    $ip = '';
+                    socket_getsockname($sock, $ip);
+                    @socket_close($sock);
+                    if ($ip == '0.0.0.0') {
+                        $this->SendDebug('ConsumerAddress', 'Invalid', 0);
+                        return $this->Translate('Invalid');
+                    }
+                    $Url = 'http://' . $ip . ':3777' . AIontheEdgeDevice\Hook::Uri . $this->InstanceID;
+                } else {
+                    $IPs = $this->getIPAdresses();
+                    $this->SendDebug('MyIPs', $IPs, 0);
+                    foreach ($IPs as &$ip) {
+                        $ip = 'http://' . $ip . ':3777' . AIontheEdgeDevice\Hook::Uri . $this->InstanceID;
+                    }
+                    $Url = implode("\r\n", $IPs);
+                }
+            }
+            return $Url;
+        }
+
+        /**
+         * getIPAdresses
+         *
+         * @return array
+         */
+        private function getIPAdresses(): array
+        {
+            $Networks = net_get_interfaces();
+            $Addresses = [];
+            foreach ($Networks as $InterfaceDescription => $Interface) {
+                if (!$Interface['up']) {
+                    continue;
+                }
+                foreach ($Interface['unicast'] as $Address) {
+                    switch ($Address['family']) {
+                        case AF_INET:
+                            if ($Address['address'] == '127.0.0.1') {
+                                continue 2;
+                            }
+                            break;
+                        default:
+                            continue 2;
+                    }
+                    $Addresses[] = $Address['address'];
+                }
+            }
+            return $Addresses;
+        }
     }
 
 }
@@ -532,6 +611,7 @@ namespace AIontheEdgeDevice {
     class Hook
     {
         public const Uri = '/hook/AIontheEdgeDevice/';
+        public const Form = 'EventHook';
     }
 
     /**

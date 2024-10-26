@@ -1,7 +1,7 @@
 {
     "translations": {
         "de": {
-            "Overwrite Address": "Addresse überschreiben",
+            "Overwrite Address": "Adresse überschreiben",
             "Save": "Speichern",
             "Value Type": "Typ der Werte",
             "Water": "Wasser",
@@ -23,7 +23,10 @@
             "Error": "Fehler",
             "Previous value": "Vorheriger Wert",
             "Raw value": "Rohwert",
-            "Image": "Bild"
+            "Image": "Bild",
+            "NATPublicIP is missing in special switches!": "NATPublicIP fehlt in den Spezialschaltern!",
+            "Invalid": "Ungültig",
+            "This module is free for non-commercial use,\r\nDonations in support of the author are accepted here:": "Dieses Modul ist für die nicht kommerzielle Nutzung kostenlos,\r\nSchenkungen als Unterstützung für den Autor werden hier akzeptiert:"
         }
     }
 }

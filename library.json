@@ -2,11 +2,11 @@
     "id": "{3F41D57E-1C34-43E9-4A66-DE3A53AF6BCF}",
     "name": "AI on the Edge Device",
     "author": "Michael Tröger",
-    "url": "",
+    "url": "https://github.com/Nall-chan/AI-on-the-Edge",
     "compatibility": {
         "version": "7.1"
     },
     "version": "1.0",
-    "build": 0,
-    "date": 0
+    "build": 1,
+    "date": 1729919237
 }
