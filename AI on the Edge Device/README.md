@@ -4,7 +4,7 @@
 [![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 [![Check Style](https://github.com/Nall-chan/AI-on-the-Edge/workflows/Check%20Style/badge.svg)](https://github.com/Nall-chan/AI-on-the-Edge/actions)
 [![Run Tests](https://github.com/Nall-chan/AI-on-the-Edge/workflows/Run%20Tests/badge.svg)](https://github.com/Nall-chan/AI-on-the-Edge/actions)  
-[![Spenden](https://www.paypalobjects.com/de_DE/DE/i/btn/btn_donate_SM.gif)](#3-spenden)[![Wunschliste](https://img.shields.io/badge/Wunschliste-Amazon-ff69fb.svg)](#3-spenden)  
+[![Spenden](https://www.paypalobjects.com/de_DE/DE/i/btn/btn_donate_SM.gif)](#2-spenden)[![Wunschliste](https://img.shields.io/badge/Wunschliste-Amazon-ff69fb.svg)](#2-spenden)  
 
 # AI on the Edge Device <!-- omit in toc -->
 Einbinden von `AI on the Edge Device` Geräten in IPS.  
