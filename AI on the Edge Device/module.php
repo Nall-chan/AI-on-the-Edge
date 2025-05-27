@@ -540,10 +540,12 @@ namespace {
             $Networks = net_get_interfaces();
             $Addresses = [];
             foreach ($Networks as $InterfaceDescription => $Interface) {
+                $Interface['up'] ??= false;
                 if (!$Interface['up']) {
                     continue;
                 }
                 foreach ($Interface['unicast'] as $Address) {
+                    $Address['family'] ??= -1;
                     switch ($Address['family']) {
                         case AF_INET:
                             if ($Address['address'] == '127.0.0.1') {
