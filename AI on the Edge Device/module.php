@@ -18,15 +18,13 @@ namespace {
     eval('declare(strict_types=1);namespace AIontheEdgeDevice {?>' . file_get_contents(__DIR__ . '/../libs/helper/BufferHelper.php') . '}');
     eval('declare(strict_types=1);namespace AIontheEdgeDevice {?>' . file_get_contents(__DIR__ . '/../libs/helper/VariableHelper.php') . '}');
     eval('declare(strict_types=1);namespace AIontheEdgeDevice {?>' . file_get_contents(__DIR__ . '/../libs/helper/VariableProfileHelper.php') . '}');
-    eval('declare(strict_types=1);namespace AIontheEdgeDevice {?>' . file_get_contents(__DIR__ . '/../libs/helper/WebhookHelper.php') . '}');
 
     /**
      * AIontheEdgeDevice
      *
      * @property string $Host Adresse des Device
      * @property string $ApiKey
-     * @method void RegisterHook(string $WebHook)
-     * @method void UnregisterHook(string $WebHook)
+     * @method bool RegisterHook(string $WebHook)
      * @method bool SendDebug(string $Message, mixed $Data, int $Format)*
      * @method void SetValueBoolean(string $Ident, bool $value)
      * @method void SetValueFloat(string $Ident, float $value)
@@ -42,7 +40,6 @@ namespace {
         use \AIontheEdgeDevice\BufferHelper;
         use \AIontheEdgeDevice\VariableHelper;
         use \AIontheEdgeDevice\VariableProfileHelper;
-        use \AIontheEdgeDevice\WebhookHelper;
 
         /**
          * Create
@@ -83,7 +80,6 @@ namespace {
             if (!IPS_InstanceExists($this->InstanceID)) {
                 $this->UnregisterProfile(AIontheEdgeDevice\VariableProfile::Gas);
                 $this->UnregisterProfile(AIontheEdgeDevice\VariableProfile::Water);
-                $this->UnregisterHook(AIontheEdgeDevice\Hook::Uri . $this->InstanceID);
             }
             //Never delete this line!
             parent::Destroy();

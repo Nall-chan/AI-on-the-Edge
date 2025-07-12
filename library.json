@@ -4,9 +4,10 @@
     "author": "Michael Tröger",
     "url": "https://github.com/Nall-chan/AI-on-the-Edge",
     "compatibility": {
-        "version": "7.1"
+        "version": "8.1",
+        "date": 1751809221
     },
     "version": "1.0",
     "build": 1,
-    "date": 1729919237
+    "date": 1751809221
 }
