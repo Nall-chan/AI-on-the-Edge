@@ -1,6 +1,6 @@
 [![SDK](https://img.shields.io/badge/Symcon-PHPModul-red.svg)](https://www.symcon.de/service/dokumentation/entwicklerbereich/sdk-tools/sdk-php/)
-[![Version](https://img.shields.io/badge/Modul%20Version-1.00-blue.svg)]()
-[![Version](https://img.shields.io/badge/Symcon%20Version-7.1%20%3E-green.svg)](https://www.symcon.de/de/service/dokumentation/installation/migrationen/v70-v71-q1-2024/)  
+[![Version](https://img.shields.io/badge/Modul%20Version-1.20-blue.svg)]()
+[![Version](https://img.shields.io/badge/Symcon%20Version-8.1%20%3E-green.svg)]()  
 [![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 [![Check Style](https://github.com/Nall-chan/AI-on-the-Edge/workflows/Check%20Style/badge.svg)](https://github.com/Nall-chan/AI-on-the-Edge/actions)
 [![Run Tests](https://github.com/Nall-chan/AI-on-the-Edge/workflows/Run%20Tests/badge.svg)](https://github.com/Nall-chan/AI-on-the-Edge/actions)  
@@ -16,9 +16,9 @@ Einbinden von `AI on the Edge Device` Geräten in IPS.
 - [3. Software-Installation](#3-software-installation)
 - [4. Enthaltende Module](#4-enthaltende-module)
 - [5. Anhang](#5-anhang)
-	- [1. GUID der Module](#1-guid-der-module)
-	- [2. Changelog](#2-changelog)
-	- [3. Spenden](#3-spenden)
+  - [1. GUID der Module](#1-guid-der-module)
+  - [2. Changelog](#2-changelog)
+  - [3. Spenden](#3-spenden)
 - [6. Lizenz](#6-lizenz)
 
 ----------
@@ -51,6 +51,10 @@ Einbinden von `AI on the Edge Device` Geräten in IPS.
 
 ----------
 ### 2. Changelog
+
+**Version 1.20:**  
+- Beta Release für Symcon 8.1  
+- Nutzung von Variablendarstellungen  
 
 **Version 1.00:**  
 - Beta Release für Symcon 7.1  

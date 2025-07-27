@@ -39,11 +39,11 @@
                         },
                         {
                             "caption": "Water",
-                            "value": "Water.m3"
+                            "value": "Drops"
                         },
                         {
                             "caption": "Gas",
-                            "value": "Gas.m3"
+                            "value": "Flame"
                         }
                     ]
                 },

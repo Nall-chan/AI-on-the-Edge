@@ -8,7 +8,7 @@ declare(strict_types=1);
  * @author        Michael Tröger <micha@nall-chan.net>
  * @copyright     2024 Michael Tröger
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
- * @version       1.00
+ * @version       1.20
  *
  */
 
@@ -17,7 +17,6 @@ namespace {
     eval('declare(strict_types=1);namespace AIontheEdgeDevice {?>' . file_get_contents(__DIR__ . '/../libs/helper/DebugHelper.php') . '}');
     eval('declare(strict_types=1);namespace AIontheEdgeDevice {?>' . file_get_contents(__DIR__ . '/../libs/helper/BufferHelper.php') . '}');
     eval('declare(strict_types=1);namespace AIontheEdgeDevice {?>' . file_get_contents(__DIR__ . '/../libs/helper/VariableHelper.php') . '}');
-    eval('declare(strict_types=1);namespace AIontheEdgeDevice {?>' . file_get_contents(__DIR__ . '/../libs/helper/VariableProfileHelper.php') . '}');
 
     /**
      * AIontheEdgeDevice
@@ -30,8 +29,6 @@ namespace {
      * @method void SetValueFloat(string $Ident, float $value)
      * @method void SetValueInteger(string $Ident, int $value)
      * @method void SetValueString(string $Ident, string $value)
-     * @method void RegisterProfileFloat(string $Name, string $Icon, string $Prefix, string $Suffix, float $MinValue, float $MaxValue, float $StepSize, int $Digits)
-     * @method void UnregisterProfile(string $Name)
      * @method int FindIDForIdent(string $Ident)
      */
     class AIontheEdgeDevice extends IPSModuleStrict
@@ -39,7 +36,6 @@ namespace {
         use \AIontheEdgeDevice\DebugHelper;
         use \AIontheEdgeDevice\BufferHelper;
         use \AIontheEdgeDevice\VariableHelper;
-        use \AIontheEdgeDevice\VariableProfileHelper;
 
         /**
          * Create
@@ -50,16 +46,16 @@ namespace {
         {
             //Never delete this line!
             parent::Create();
-            $this->RegisterAttributeString(AIontheEdgeDevice\Attribute::Host, '');
-            $this->RegisterPropertyString(AIontheEdgeDevice\Property::ApiKey, '');
-            $this->RegisterPropertyString(AIontheEdgeDevice\Property::ValueProfile, '');
-            $this->RegisterPropertyBoolean(AIontheEdgeDevice\Property::EnablePreValue, true);
-            $this->RegisterPropertyBoolean(AIontheEdgeDevice\Property::EnableRawValue, true);
-            $this->RegisterPropertyBoolean(AIontheEdgeDevice\Property::EnableSnapshotImage, true);
-            $this->RegisterPropertyBoolean(AIontheEdgeDevice\Property::EnableTimeoutVariable, true);
-            $this->RegisterPropertyBoolean(AIontheEdgeDevice\Property::EnableTimeoutInstanceStatus, true);
-            $this->RegisterPropertyInteger(AIontheEdgeDevice\Property::Timeout, 300);
-            $this->RegisterPropertyInteger(AIontheEdgeDevice\Property::DigitizeIntervall, 0);
+            $this->RegisterAttributeString(\AIontheEdgeDevice\Attribute::Host, '');
+            $this->RegisterPropertyString(\AIontheEdgeDevice\Property::ApiKey, '');
+            $this->RegisterPropertyString(\AIontheEdgeDevice\Property::ValueIcon, 'Drops');
+            $this->RegisterPropertyBoolean(\AIontheEdgeDevice\Property::EnablePreValue, true);
+            $this->RegisterPropertyBoolean(\AIontheEdgeDevice\Property::EnableRawValue, true);
+            $this->RegisterPropertyBoolean(\AIontheEdgeDevice\Property::EnableSnapshotImage, true);
+            $this->RegisterPropertyBoolean(\AIontheEdgeDevice\Property::EnableTimeoutVariable, true);
+            $this->RegisterPropertyBoolean(\AIontheEdgeDevice\Property::EnableTimeoutInstanceStatus, true);
+            $this->RegisterPropertyInteger(\AIontheEdgeDevice\Property::Timeout, 300);
+            $this->RegisterPropertyInteger(\AIontheEdgeDevice\Property::DigitizeIntervall, 0);
             $this->RegisterTimer(\AIontheEdgeDevice\Timer::Timeout, 0, 'IPS_RequestAction(' . $this->InstanceID . ',"Timeout",true);');
             $this->RegisterTimer(\AIontheEdgeDevice\Timer::RunFlow, 0, 'IPS_RequestAction(' . $this->InstanceID . ',"RunFlow",true);');
 
@@ -70,19 +66,19 @@ namespace {
             $this->ApiKey = '';
         }
 
-        /**
-         * Destroy
-         *
-         * @return void
-         */
-        public function Destroy(): void
+        public function Migrate(string $JSONData): string
         {
-            if (!IPS_InstanceExists($this->InstanceID)) {
-                $this->UnregisterProfile(AIontheEdgeDevice\VariableProfile::Gas);
-                $this->UnregisterProfile(AIontheEdgeDevice\VariableProfile::Water);
+            // Prüfe Version diese Modul-Instanz
+            $j = json_decode($JSONData);
+            if (isset($j->property->{AIontheEdgeDevice\Property::ValueProfile})) {
+                $j->property->{AIontheEdgeDevice\Property::ValueIcon} = $j->property->{AIontheEdgeDevice\Property::ValueProfile} == 'Water.m3' ? 'Drops' : 'Flame';
             }
-            //Never delete this line!
-            parent::Destroy();
+            $offlineVar = $this->FindIDForIdent('Offline');
+            if (IPS_VariableExists($offlineVar)) {
+                IPS_SetIdent($offlineVar, \AIontheEdgeDevice\Variable::Connection);
+            }
+
+            return json_encode($j);
         }
 
         /**
@@ -102,8 +98,6 @@ namespace {
             if (IPS_GetKernelRunlevel() != KR_READY) {
                 return;
             }
-            $this->RegisterProfileFloat(AIontheEdgeDevice\VariableProfile::Water, 'Drops', '', ' m³', 0, 0, 0, 3);
-            $this->RegisterProfileFloat(AIontheEdgeDevice\VariableProfile::Gas, 'Flame', '', ' m³', 0, 0, 0, 3);
             $this->RegisterHook(AIontheEdgeDevice\Hook::Uri . $this->InstanceID);
             $Host = $this->ReadAttributeString(AIontheEdgeDevice\Attribute::Host);
             if ($Host) {
@@ -111,40 +105,58 @@ namespace {
             }
             $this->ApiKey = $this->ReadPropertyString(AIontheEdgeDevice\Property::ApiKey);
             $this->RegisterVariableInteger(
-                AIontheEdgeDevice\Variable::Timestamp,
+                \AIontheEdgeDevice\Variable::Timestamp,
                 $this->Translate('Last flow'),
-                '~UnixTimestamp'
+                [
+                    'PRESENTATION'  => VARIABLE_PRESENTATION_DATE_TIME,
+                    'TEMPLATE'      => VARIABLE_TEMPLATE_DATE_TIME
+                ]
             );
             $this->RegisterVariableFloat(
-                AIontheEdgeDevice\Variable::Value,
+                \AIontheEdgeDevice\Variable::Value,
                 $this->Translate('Value'),
-                $this->ReadPropertyString(AIontheEdgeDevice\Property::ValueProfile)
+                [
+                    'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                    'SUFFIX'      => ' m³',
+                    'ICON'        => $this->ReadPropertyString(AIontheEdgeDevice\Property::ValueIcon)
+                ]
             );
             $this->RegisterVariableString(
-                AIontheEdgeDevice\Variable::Error,
+                \AIontheEdgeDevice\Variable::Error,
                 $this->Translate('Error')
             );
             $this->MaintainVariable(
-                AIontheEdgeDevice\Variable::PreValue,
+                \AIontheEdgeDevice\Variable::PreValue,
                 $this->Translate('Previous value'),
                 VARIABLETYPE_FLOAT,
-                $this->ReadPropertyString(AIontheEdgeDevice\Property::ValueProfile),
+                [
+                    'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                    'SUFFIX'      => ' m³',
+                    'ICON'        => $this->ReadPropertyString(AIontheEdgeDevice\Property::ValueIcon)
+                ],
                 0,
                 $this->ReadPropertyBoolean(AIontheEdgeDevice\Property::EnablePreValue)
             );
             $this->MaintainVariable(
-                AIontheEdgeDevice\Variable::RawValue,
+                \AIontheEdgeDevice\Variable::RawValue,
                 $this->Translate('Raw value'),
                 VARIABLETYPE_STRING,
-                '',
+                [],
                 0,
                 $this->ReadPropertyBoolean(AIontheEdgeDevice\Property::EnableRawValue)
             );
             $this->MaintainVariable(
-                AIontheEdgeDevice\Variable::Offline,
-                $this->Translate('Offline'),
+                \AIontheEdgeDevice\Variable::Connection,
+                $this->Translate('Connection'),
                 VARIABLETYPE_BOOLEAN,
-                '~Alert',
+                [
+                    'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                    'OPTIONS'      => '[
+                        {"ColorDisplay":-1,"Value":false,"Caption":"online","IconActive":true,"IconValue":"Ok","ColorActive":true,"ColorValue":-1,"Color":-1},
+                        {"ColorDisplay":16711680,"Value":true,"Caption":"offline","IconActive":true,"IconValue":"Cross","ColorActive":true,"ColorValue":16711680,"Color":-1}
+                    ]'
+
+                ],
                 0,
                 $this->ReadPropertyBoolean(AIontheEdgeDevice\Property::EnableTimeoutVariable)
             );
@@ -185,13 +197,13 @@ namespace {
         public function RequestAction(string $Ident, mixed $Value): void
         {
             switch ($Ident) {
-                case AIontheEdgeDevice\Timer::RunFlow:
+                case \AIontheEdgeDevice\Timer::RunFlow:
                     $this->StartFlow();
                     break;
-                case AIontheEdgeDevice\Timer::Timeout:
+                case \AIontheEdgeDevice\Timer::Timeout:
                     $this->TriggerTimeout();
                     break;
-                case AIontheEdgeDevice\Action::SaveAddress:
+                case \AIontheEdgeDevice\Action::SaveAddress:
                     $this->UpdateFormField(AIontheEdgeDevice\Attribute::Host, 'enabled', false);
                     $this->UpdateFormField(AIontheEdgeDevice\Action::ResetAddress, 'caption', $this->Translate('Overwrite Address'));
                     $this->UpdateFormField(AIontheEdgeDevice\Action::ResetAddress, 'onClick', 'IPS_RequestAction($id, \'ResetAddress\', true);');
@@ -203,12 +215,12 @@ namespace {
                         $this->UpdateFormField(AIontheEdgeDevice\Hook::Form, 'caption', $this->GetConsumerAddress());
                     }
                     break;
-                case AIontheEdgeDevice\Action::ResetAddress:
+                case \AIontheEdgeDevice\Action::ResetAddress:
                     $this->UpdateFormField(AIontheEdgeDevice\Attribute::Host, 'enabled', true);
                     $this->UpdateFormField(AIontheEdgeDevice\Action::ResetAddress, 'caption', $this->Translate('Save'));
                     $this->UpdateFormField(AIontheEdgeDevice\Action::ResetAddress, 'onClick', 'IPS_RequestAction($id, \'SaveAddress\', $Host);');
                     break;
-                case AIontheEdgeDevice\Action::EnableLogging:
+                case \AIontheEdgeDevice\Action::EnableLogging:
                     $AId = IPS_GetInstanceListByModuleID(AIontheEdgeDevice\GUID::ArchiveControl)[0];
                     AC_SetLoggingStatus($AId, $this->FindIDForIdent((string) $Value), true);
                     if ($Value != 'RawValue') {
@@ -431,9 +443,9 @@ namespace {
                 $this->SetValueString(AIontheEdgeDevice\Variable::RawValue, $RawValue);
             }
             if ($this->ReadPropertyBoolean(AIontheEdgeDevice\Property::EnableTimeoutVariable)) {
-                $this->SetValueBoolean(AIontheEdgeDevice\Variable::Offline, false);
+                $this->SetValueBoolean(AIontheEdgeDevice\Variable::Connection, false);
             }
-            if ($this->ReadPropertyBoolean(AIontheEdgeDevice\Property::EnableTimeoutInstanceStatus) || ($this->GetStatus() == AIontheEdgeDevice\ModuleState::Inactive)) {
+            if ($this->ReadPropertyBoolean(AIontheEdgeDevice\Property::EnableTimeoutInstanceStatus) || ($this->GetStatus() == \AIontheEdgeDevice\ModuleState::Inactive)) {
                 $this->SetStatus(AIontheEdgeDevice\ModuleState::Active);
             }
             $this->ResetTimeoutIntervall();
@@ -478,7 +490,7 @@ namespace {
         private function TriggerTimeout(): void
         {
             if ($this->ReadPropertyBoolean(AIontheEdgeDevice\Property::EnableTimeoutVariable)) {
-                $this->SetValueBoolean(AIontheEdgeDevice\Variable::Offline, true);
+                $this->SetValueBoolean(AIontheEdgeDevice\Variable::Connection, true);
             }
             if ($this->ReadPropertyBoolean(AIontheEdgeDevice\Property::EnableTimeoutInstanceStatus)) {
                 $this->SetStatus(AIontheEdgeDevice\ModuleState::Offline);
@@ -500,7 +512,7 @@ namespace {
                     $this->SendDebug('NAT enabled ConsumerAddress', 'Invalid', 0);
                     return $this->Translate('NATPublicIP is missing in special switches!');
                 }
-                $Url = 'http://' . $ip . ':3777' . AIontheEdgeDevice\Hook::Uri . $this->InstanceID;
+                $Url = 'http://' . $ip . ':3777' . \AIontheEdgeDevice\Hook::Uri . $this->InstanceID;
             } else {
                 if ($this->Host) {
                     $sock = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
@@ -513,12 +525,12 @@ namespace {
                         $this->SendDebug('ConsumerAddress', 'Invalid', 0);
                         return $this->Translate('Invalid');
                     }
-                    $Url = 'http://' . $ip . ':3777' . AIontheEdgeDevice\Hook::Uri . $this->InstanceID;
+                    $Url = 'http://' . $ip . ':3777' . \AIontheEdgeDevice\Hook::Uri . $this->InstanceID;
                 } else {
                     $IPs = $this->getIPAdresses();
                     $this->SendDebug('MyIPs', $IPs, 0);
                     foreach ($IPs as &$ip) {
-                        $ip = 'http://' . $ip . ':3777' . AIontheEdgeDevice\Hook::Uri . $this->InstanceID;
+                        $ip = 'http://' . $ip . ':3777' . \AIontheEdgeDevice\Hook::Uri . $this->InstanceID;
                     }
                     $Url = implode("\r\n", $IPs);
                 }
@@ -579,6 +591,7 @@ namespace AIontheEdgeDevice {
     {
         public const ApiKey = 'ApiKey';
         public const ValueProfile = 'ValueProfile';
+        public const ValueIcon = 'ValueIcon';
         public const EnablePreValue = 'EnablePreValue';
         public const EnableRawValue = 'EnableRawValue';
         public const EnableSnapshotImage = 'EnableSnapshotImage';
@@ -614,16 +627,6 @@ namespace AIontheEdgeDevice {
     }
 
     /**
-     * VariableProfile
-     */
-    class VariableProfile
-    {
-        public const Gas = 'Gas.m3';
-        public const Water = 'Water.m3';
-        public const Timestamp = '~UnixTimestamp';
-    }
-
-    /**
      * Variable
      */
     class Variable
@@ -633,7 +636,7 @@ namespace AIontheEdgeDevice {
         public const Error = 'Error';
         public const PreValue = 'PreValue';
         public const RawValue = 'RawValue';
-        public const Offline = 'Offline';
+        public const Connection = 'Connection';
     }
 
     /**
