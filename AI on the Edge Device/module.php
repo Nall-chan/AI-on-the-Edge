@@ -58,7 +58,7 @@ namespace {
             $this->RegisterPropertyInteger(\AIontheEdgeDevice\Property::DigitizeIntervall, 0);
             $this->RegisterTimer(\AIontheEdgeDevice\Timer::Timeout, 0, 'IPS_RequestAction(' . $this->InstanceID . ',"Timeout",true);');
             $this->RegisterTimer(\AIontheEdgeDevice\Timer::RunFlow, 0, 'IPS_RequestAction(' . $this->InstanceID . ',"RunFlow",true);');
-
+            $this->RegisterHook(AIontheEdgeDevice\Hook::Uri . $this->InstanceID);
             if (IPS_GetKernelRunlevel() != KR_READY) {
                 $this->RegisterMessage(0, IPS_KERNELSTARTED);
             }
@@ -98,7 +98,6 @@ namespace {
             if (IPS_GetKernelRunlevel() != KR_READY) {
                 return;
             }
-            $this->RegisterHook(AIontheEdgeDevice\Hook::Uri . $this->InstanceID);
             $Host = $this->ReadAttributeString(AIontheEdgeDevice\Attribute::Host);
             if ($Host) {
                 $this->Host = gethostbyname($Host);
