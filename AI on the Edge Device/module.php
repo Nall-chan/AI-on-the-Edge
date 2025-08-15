@@ -621,7 +621,7 @@ namespace AIontheEdgeDevice {
      */
     class Hook
     {
-        public const Uri = '/hook/AIontheEdgeDevice/';
+        public const Uri = 'AIontheEdgeDevice/';
         public const Form = 'EventHook';
     }
 
