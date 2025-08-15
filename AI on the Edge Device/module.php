@@ -511,7 +511,7 @@ namespace {
                     $this->SendDebug('NAT enabled ConsumerAddress', 'Invalid', 0);
                     return $this->Translate('NATPublicIP is missing in special switches!');
                 }
-                $Url = 'http://' . $ip . ':3777' . \AIontheEdgeDevice\Hook::Uri . $this->InstanceID;
+                $Url = 'http://' . $ip . ':3777/hook/' . \AIontheEdgeDevice\Hook::Uri . $this->InstanceID;
             } else {
                 if ($this->Host) {
                     $sock = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
@@ -524,12 +524,12 @@ namespace {
                         $this->SendDebug('ConsumerAddress', 'Invalid', 0);
                         return $this->Translate('Invalid');
                     }
-                    $Url = 'http://' . $ip . ':3777' . \AIontheEdgeDevice\Hook::Uri . $this->InstanceID;
+                    $Url = 'http://' . $ip . ':3777/hook/' . \AIontheEdgeDevice\Hook::Uri . $this->InstanceID;
                 } else {
                     $IPs = $this->getIPAdresses();
                     $this->SendDebug('MyIPs', $IPs, 0);
                     foreach ($IPs as &$ip) {
-                        $ip = 'http://' . $ip . ':3777' . \AIontheEdgeDevice\Hook::Uri . $this->InstanceID;
+                        $ip = 'http://' . $ip . ':3777/hook/' . \AIontheEdgeDevice\Hook::Uri . $this->InstanceID;
                     }
                     $Url = implode("\r\n", $IPs);
                 }
