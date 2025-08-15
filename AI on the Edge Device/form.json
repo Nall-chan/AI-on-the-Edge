@@ -29,7 +29,7 @@
             "items": [
                 {
                     "caption": "Value Type",
-                    "name": "ValueProfile",
+                    "name": "ValueIcon",
                     "type": "Select",
                     "width": "250px",
                     "options": [
